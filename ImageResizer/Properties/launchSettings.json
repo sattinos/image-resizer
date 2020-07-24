@@ -2,7 +2,7 @@
   "profiles": {
     "ImageResizer": {
       "commandName": "Project",
-      "commandLineArgs": "-f 25"
+      "commandLineArgs": "-b replace -f 250 -s D:\\\\Dropbox\\\\SellingItems"
     }
   }
 }

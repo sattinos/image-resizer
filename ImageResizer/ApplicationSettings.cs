@@ -5,7 +5,7 @@ namespace ImageResizer.Options
     public enum Behaviour
     {
         Copy,
-        OverrideOriginal
+        Replace
     }
 
     public class ApplicationSettings

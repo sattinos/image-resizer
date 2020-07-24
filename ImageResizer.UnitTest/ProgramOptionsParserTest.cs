@@ -7,15 +7,15 @@ namespace ImageResizer.UnitTest
 {
     public class ProgramOptionsParserTest
     {
-        public static IEnumerable<object[]> invalidArgumentsSet
+        public static IEnumerable<object[]> InvalidArgumentsSet
            => new object[][] {
                 new object[] { new string[] { "some wrong arguments" } },
                 new object[] { new string[] { "" } },
-                new object[] { new string[] { } }
+                new object[] { Array.Empty<string>() }
            };
 
         [Theory(DisplayName = "wrong arguments test")]
-        [MemberData(nameof(invalidArgumentsSet))]
+        [MemberData(nameof(InvalidArgumentsSet))]
         public void WrongArgumentsPassed(string[] args)
         {
             var appInstance = new Application(args);
@@ -23,14 +23,14 @@ namespace ImageResizer.UnitTest
             Assert.NotNull(appInstance.Error);
         }
 
-        public static IEnumerable<object[]> validArgumentsSet
+        public static IEnumerable<object[]> ValidArgumentsSet
            => new object[][] {
                 new object[] { new string[] { "-f", "25" }, 25, Behaviour.Copy, Environment.CurrentDirectory, Environment.CurrentDirectory  },
-                new object[] { new string[] { "-f", "200", "-s", "c:/images", "-t", "c:/images/output", "-b", "OverrideOriginal" }, 200, Behaviour.OverrideOriginal, "c:/images", "c:/images/output" }
+                new object[] { new string[] { "-f", "200", "-s", "c:/images", "-b", "replace" }, 200, Behaviour.Replace, "c:/images", "c:/images" }
            };
 
         [Theory(DisplayName = "correct arguments test")]
-        [MemberData(nameof(validArgumentsSet))]
+        [MemberData(nameof(ValidArgumentsSet))]
         public void CorrectArgumentsPassed(string[] args, int factor, Behaviour behaviour, string sourcePath, string targetPath)
         {
             var appInstance = new Application(args);

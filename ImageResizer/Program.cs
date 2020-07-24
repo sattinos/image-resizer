@@ -1,13 +1,11 @@
-﻿using System;
-
-namespace ImageResizer
+﻿namespace ImageResizer
 {
     class Program
     {
         static int Main(string[] args)
         {
             var appInstance = new Application(args);
-            Console.WriteLine(appInstance.Settings);
+            appInstance.ProcessFiles();
             return 0;
         }
     }

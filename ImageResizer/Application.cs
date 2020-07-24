@@ -1,25 +1,91 @@
 ﻿using System;
 using System.Text;
-using ImageResizer.Options;
+using System.IO;
 using MatthiWare.CommandLine;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Processing;
+using ImageResizer.Options;
+using ImageResizer.Extensions.IO;
 
 namespace ImageResizer
 {
     public class Application
     {
+        public readonly static string[] ImageExtensions = new string[] { ".png", ".gif", "tiff", ".tif", ".jpeg", ".jpg", ".bmp", ".svg" };
         public Application(string[] args)
         {
             Setup(args);
         }
         public ApplicationSettings Settings { get; set; }
         public string Error { get; private set; }
+        public void ProcessFiles()
+        {
+            var samePath = String.Equals(Settings.SourcePath, Settings.TargetPath, StringComparison.OrdinalIgnoreCase);
+
+            var sourceFiles = new DirectoryInfo(Settings.SourcePath).EnumerateFiles(ImageExtensions, samePath ? null : Settings.TargetPath);
+            var factor = 100.0 / Settings.ScaleFactor;
+
+            StringBuilder stringBuilder = new StringBuilder();
+            double totalSourceSizeMB = 0;
+            double totalTargetSizeMB = 0;
+            foreach (var sourceFile in sourceFiles)
+            {
+                stringBuilder.AppendLine("===================");
+                stringBuilder.AppendLine(sourceFile.FullName);
+                var sourceFileSizeMB = Math.Round(sourceFile.Length / (1024.0 * 1024.0), 2);
+                totalSourceSizeMB += sourceFileSizeMB;
+                stringBuilder.AppendLine($"size(mb): {sourceFileSizeMB}");
+                using var image = Image.Load(sourceFile.FullName);
+                stringBuilder.AppendLine($"{image.Width} * {image.Height}");
+
+                image.Mutate(x => x.Resize((int)(image.Width / factor), (int)(image.Height / factor)));
+
+                var finalImageFile = sourceFile.FullName;
+                var finalPath = sourceFile.DirectoryName;
+                if (!samePath)
+                {
+                    var relativePath = Path.GetRelativePath(Settings.TargetPath, sourceFile.DirectoryName);
+                    var relativeFolderPath = relativePath.Substring(3);
+                    finalPath = Path.Combine(Settings.TargetPath, relativeFolderPath);
+                    Directory.CreateDirectory(finalPath);
+                }
+
+                var copyToken = "";
+                if (Settings.Behaviour == Behaviour.Copy)
+                {
+                    copyToken = $"_{image.Width}_{image.Height}";
+                }
+                finalImageFile = Path.Combine(finalPath, $"{Path.GetFileNameWithoutExtension(sourceFile.Name)}{copyToken}{sourceFile.Extension}");
+
+                if (Settings.Behaviour == Behaviour.Replace)
+                {
+                    File.Delete(sourceFile.FullName);
+                }
+
+                image.Save(finalImageFile);
+                stringBuilder.AppendLine(" => ");
+                stringBuilder.AppendLine(finalImageFile);
+                stringBuilder.AppendLine($"{image.Width} * {image.Height}");
+
+                var outputFileInfo = new FileInfo(finalImageFile);
+                var targetFileSizeMB = Math.Round(outputFileInfo.Length / (1024.0 * 1024.0), 2);
+                totalTargetSizeMB += targetFileSizeMB;
+                stringBuilder.AppendLine($"size(mb): {targetFileSizeMB}");
+            }
+            stringBuilder.AppendLine("===================");
+            stringBuilder.AppendLine($"total source files size: {totalSourceSizeMB} mb");
+            stringBuilder.AppendLine($"total target files size: {totalTargetSizeMB} mb");
+            stringBuilder.AppendLine($"total reduction: {totalSourceSizeMB - totalTargetSizeMB} mb");
+            stringBuilder.AppendLine("===================");
+            Console.WriteLine(stringBuilder.ToString());
+        }
         private void Setup(string[] args)
-        {          
+        {
             var parser = new CommandLineParser<ApplicationSettings>();
             var result = parser.Parse(args);
             var errors = new StringBuilder();
 
-            if( result.HasErrors )
+            if (result.HasErrors)
             {
                 foreach (var errorItem in result.Errors)
                 {
@@ -39,14 +105,19 @@ namespace ImageResizer
         /// <param name="options"></param>
         private static void PostProcess(ApplicationSettings options)
         {
-            if (options.SourcePath == "")
+            if (string.IsNullOrWhiteSpace(options.SourcePath))
             {
                 options.SourcePath = Environment.CurrentDirectory;
             }
 
-            if (options.TargetPath == "")
+            if (string.IsNullOrWhiteSpace(options.TargetPath))
             {
                 options.TargetPath = Environment.CurrentDirectory;
+            }
+
+            if (options.Behaviour == Behaviour.Replace)
+            {
+                options.TargetPath = options.SourcePath;
             }
         }
     }
