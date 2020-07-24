@@ -20,6 +20,16 @@ namespace ImageResizer
         public string Error { get; private set; }
         public void ProcessFiles()
         {
+            if( Settings == null )
+            {
+                return;
+            }
+
+            if (Settings.ScaleFactor == 100)
+            {
+                return;
+            }
+
             var samePath = String.Equals(Settings.SourcePath, Settings.TargetPath, StringComparison.OrdinalIgnoreCase);
 
             var sourceFiles = new DirectoryInfo(Settings.SourcePath).EnumerateFiles(ImageExtensions, samePath ? null : Settings.TargetPath);
@@ -34,7 +44,7 @@ namespace ImageResizer
                 stringBuilder.AppendLine(sourceFile.FullName);
                 var sourceFileSizeMB = Math.Round(sourceFile.Length / (1024.0 * 1024.0), 2);
                 totalSourceSizeMB += sourceFileSizeMB;
-                stringBuilder.AppendLine($"size(mb): {sourceFileSizeMB}");
+                stringBuilder.AppendLine($"size: {sourceFileSizeMB} mb");
                 using var image = Image.Load(sourceFile.FullName);
                 stringBuilder.AppendLine($"{image.Width} * {image.Height}");
 
@@ -70,12 +80,15 @@ namespace ImageResizer
                 var outputFileInfo = new FileInfo(finalImageFile);
                 var targetFileSizeMB = Math.Round(outputFileInfo.Length / (1024.0 * 1024.0), 2);
                 totalTargetSizeMB += targetFileSizeMB;
-                stringBuilder.AppendLine($"size(mb): {targetFileSizeMB}");
+                stringBuilder.AppendLine($"size: {targetFileSizeMB} mb");
+                Console.WriteLine(stringBuilder.ToString());
+                stringBuilder.Clear();
+
             }
             stringBuilder.AppendLine("===================");
-            stringBuilder.AppendLine($"total source files size: {totalSourceSizeMB} mb");
-            stringBuilder.AppendLine($"total target files size: {totalTargetSizeMB} mb");
-            stringBuilder.AppendLine($"total reduction: {totalSourceSizeMB - totalTargetSizeMB} mb");
+            stringBuilder.AppendLine($"total source files size: {Math.Round(totalSourceSizeMB, 2)} mb");
+            stringBuilder.AppendLine($"total target files size: {Math.Round(totalTargetSizeMB, 2)} mb");
+            stringBuilder.AppendLine($"total change: {Math.Round(Math.Abs(totalSourceSizeMB - totalTargetSizeMB), 2)} mb");
             stringBuilder.AppendLine("===================");
             Console.WriteLine(stringBuilder.ToString());
         }
@@ -83,6 +96,10 @@ namespace ImageResizer
         {
             var parser = new CommandLineParser<ApplicationSettings>();
             var result = parser.Parse(args);
+            if (args.Length == 0)
+            {
+                return;
+            }
             var errors = new StringBuilder();
 
             if (result.HasErrors)

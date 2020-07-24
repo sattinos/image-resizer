@@ -3,11 +3,21 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
+    <AssemblyName>imageResizer</AssemblyName>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Authors>Mahmoud AlSati</Authors>
+    <Product>Image Resizer</Product>
+    <Description>This app resizes all images specified in a folder.</Description>
+    <Version>1.0.4</Version>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="MatthiWare.CommandLineParser" Version="0.3.0" />
     <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-rc0003" />
   </ItemGroup>
+
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="copy &quot;$(TargetDir)&quot; &quot;D:\Personal_Projects\release\image-resizer&quot;" />
+  </Target>
 
 </Project>

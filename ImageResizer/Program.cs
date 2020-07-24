@@ -5,7 +5,7 @@
         static int Main(string[] args)
         {
             var appInstance = new Application(args);
-            appInstance.ProcessFiles();
+            appInstance?.ProcessFiles();
             return 0;
         }
     }
