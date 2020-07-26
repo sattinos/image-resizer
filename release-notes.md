@@ -16,3 +16,7 @@
 	[modify] skip if scale factor is 100 
 	[modify] skip if failed to create application instance
 	[update] readme.md includes examples and how to use.
+1.0.5
+=====
+	[modify] typo mistake
+	[modify] make the readme.md file upper case
