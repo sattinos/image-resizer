@@ -18,5 +18,4 @@
 	[update] readme.md includes examples and how to use.
 1.0.5
 =====
-	[modify] typo mistake
-	[modify] make the readme.md file upper case
+	[modify] update readme.md file
